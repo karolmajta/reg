@@ -28,11 +28,11 @@
         :else (let [[element options] form
                     listeners (into {} (for [k (filter #(.startsWith (name %) "on-") (keys options))]
                                 [k #(do
-                                      (put! events (get options k))
+                                      (put! events (assoc (get options k) :event-data %))
                                       (when (get-in options [k :prevent-default])
                                         (.preventDefault %))
                                       true)]))]
-                (into [element listeners] (drop 2 form)))))
+                (into [element (merge options listeners)] (drop 2 form)))))
 
 (defn all-event-handlers->functions [form]
   (walk element-event-handlers->functions identity form))

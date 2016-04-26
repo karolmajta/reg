@@ -21,9 +21,11 @@
   :npm {:root "dist"
         :dependencies [[electron-prebuilt "0.37.5"]
                        [source-map-support "0.4.0"]
-                       [ws "1.0.1"]]
+                       [ws "1.0.1"]
+                       [node-sass "3.6.0"]]
         :package {:main "main.js"
-                  :scripts {:electron "./node_modules/.bin/electron ."}}}
+                  :scripts {:electron "./node_modules/.bin/electron ."
+                            :sass "./node_modules/.bin/node-sass ../vendor/surface/scss/surface_styles.scss -o resources/css"}}}
 
   :cljsbuild {:builds {:server {:source-paths ["src/cljs"]
                                 :compiler {:main reg.application.server
@@ -34,7 +36,7 @@
                                            :source-map true}}
                        :client {:source-paths ["src/cljs"]
                                 :compiler {:main reg.application.client
-                                           :optimizations :whitespace
                                            :output-to "dist/resources/js/main.js"
                                            :output-dir "dist/resources/js"
-                                           :source-map "dist/resources/js/main.js.map"}}}})
+                                           :source-map "dist/resources/js/main.js.map"
+                                           :asset-path "js"}}}})

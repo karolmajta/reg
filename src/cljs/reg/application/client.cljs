@@ -1,20 +1,11 @@
 (ns reg.application.client
   (:require [reg.framework.client.core]
-            [reagent.core :as r]))
-
-(defn dropdown []
-  (let [open? (r/atom false)]
-    (fn []
-      [:div
-       [:button {:on-click #(swap! open? not)} "click to toggle open/closed"]
-       (when @open?
-         [:ul
-          [:li "Item one"]
-          [:li "Item two"]
-          [:li "Item three"]])])))
+            [reg.application.widgets]))
 
 (defn -main [& args]
   (enable-console-print!)
   (reg.framework.client.core/start
-    {:dropdown dropdown}
+    {:login-widget reg.application.widgets/login-form
+     :list reg.application.widgets/list
+     :details reg.application.widgets/details}
     (.getElementById js/document "application-container")))

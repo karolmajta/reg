@@ -1,8 +1,11 @@
 (ns reg.application.server
   (:require [cljs.reader :refer [read-string]]
-            [cljs.core.async :refer [<!]]
+            [cljs.core.async :refer [take!]]
 
-            [reg.framework.server.core])
+            [reg.framework.server.core]
+
+            [reg.application.screens]
+            [reg.application.http])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (declare -main)
@@ -10,57 +13,40 @@
 
 (def state (atom {:app-ready? false
                   :app-closed? false
-                  :close-click-count 0}))
+                  :session nil
+                  :users ["A" "B" "C"]
+                  :shown-user-windows #{}}))
 
 (defn handler [e]
   (when (= (:event e) :app/ready)
     (swap! state assoc :app-ready? true))
   (when (= (:event e) :app/close)
     (swap! state assoc :app-closed? true))
-
-  (when (= (:event e) :window/close)
-    (when (= (:key e) :otherwindow)
-      (swap! state assoc :app-closed? true))
-    (when (= (:key e) :mywindow)
-      (swap! state update :close-click-count inc)))
-
-  (when (= (:event e) :window/close-immediately)
-    (swap! state update :close-click-count #(if (< % 10) 10 %))))
+  (when (= (:event e) :app/login)
+    (swap! state assoc :session {:pending :true
+                                 :token nil
+                                 :email (get-in e [:event-data :email])})
+    (take! (reg.application.http/login (:event-data e)) #(if (= :error (:status %))
+                                                          (swap! state assoc :session {:pending false
+                                                                                       :token nil
+                                                                                       :error (get-in % [:data :message])})
+                                                          (swap! state assoc :session {:pending false
+                                                                                       :token (get-in % [:data :token])}))))
+  (when (= (:event e) :app/user-select)
+    (swap! state assoc :focused-user (:event-data e))))
 
 
 (defn app []
-    (when-not (:app-closed? @state)
-      [:app {:on-ready {:event :app/ready}}
-       (when (and (:app-ready? @state) (< (:close-click-count @state) 10))
-         [:window {:key :mywindow
-                   :on-close {:event :window/close
-                              :key :mywindow
+  (when-not (:app-closed? @state)
+    [:app {:on-ready {:event :app/ready}}
+     (when (:app-ready? @state)
+         [:window {:key :app-window
+                   :on-close {:event :app/close
                               :prevent-default true}}
-          [:content {:key :other-window-content}
-           [:div
-            [:h1 "You need to click close button 10 times to close this window,
-                  but it will not close the application..."]
-            [:h3 (str "You have clicked close " (:close-click-count @state) " times")]
-            [:hr]
-            ['dropdown]
-            [:hr]
-            [:button {:key :close-button
-                      :on-click {:event :app/close}} "You can use this button so close the app too..."]]]])
-       (when (:app-ready? @state)
-         [:window {:key :otherwindow
-                   :on-close {:event :window/close
-                              :key :otherwindow
-                              :prevent-default true}}
-          [:content {:key :otherwindow-content}
-           [:div
-            [:h1 "Closing this window will cause shutting down the whole app."]
-            [:hr]
-            (if (< (:close-click-count @state) 10)
-              [:button {:key :mywindow-close-button
-                        :on-click {:event :window/close-immediately
-                                   :key :mywindow}}
-               "You can use this button to close the other window immediately"]
-              [:div "Looks like you have already closed the other window"])]]])]))
+          [:content {:key :app-content}
+           (if-not (get-in @state [:session :token])
+            (reg.application.screens/login (:session @state))
+            (reg.application.screens/dashboard (:users @state) (:focused-user @state)))]])]))
 
 (defn -main
   [& args]

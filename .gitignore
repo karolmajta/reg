@@ -15,3 +15,4 @@ pom.xml.asc
 !/dist/main.js
 !/dist/resources
 /dist/resources/js
+/dist/resources/css
