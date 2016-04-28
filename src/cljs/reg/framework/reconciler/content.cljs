@@ -5,6 +5,7 @@
                                                     unbind-events-on-remove]]))
 
 (defn hiccup-content [element]
+  (when (< 3 (count element)) (throw (js/Error. ":content should contain options and at most one child.")))
   (or (get element 2) [:div.no-content]))
 
 (defmethod reg.framework.reconciler.reconcile/reconcile-add :content [context previous next]

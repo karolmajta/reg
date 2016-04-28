@@ -15,8 +15,8 @@
 (defprotocol IWindowManager
   (open [this key options])
   (close [this key])
-  (on [this key event-name f])
-  (off [this key event-name])
+  (maximize [this key])
+  (unmaximize [this key])
   (send-hiccup [this key hiccup-form]))
 
 (defrecord WindowManager [windows events]
@@ -43,7 +43,8 @@
                                             (let [data (transit/write (transit/writer :json) hiccup-form)]
                                               (try
                                                 (.send web-contents "render" (str data))
-                                                (catch js/Error _))
+                                                (catch js/Error _
+                                                  (.log js/console "Render received, but the window has gone away.")))
                                               (recur))))))
 
       (swap! (:windows this) assoc key {:window window :tx tx :rx rx}))))
@@ -57,13 +58,11 @@
       (.close window)
       (swap! (:windows this) dissoc key)))
 
-  (on [this key event-name f]
-    (let [window (get-in @(:windows this) [key :window])]
-      (.on window event-name f)))
+  (maximize [this key]
+    (.maximize (get-in @(:windows this) [key :window])))
 
-  (off [this key event-name]
-    (let [window (get-in @(:windows this) [key :window])]
-      (.removeAllListeners window event-name)))
+  (unmaximize [this key]
+    (.unmaximize (get-in @(:windows this) [key :window])))
 
   (send-hiccup [this key hiccup-form]
     (let [tx (get-in @(:windows this) [key :tx])]

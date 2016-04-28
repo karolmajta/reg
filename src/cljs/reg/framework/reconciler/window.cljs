@@ -6,23 +6,29 @@
 
 
 (defmethod reg.framework.reconciler.reconcile/reconcile-add :window [context previous next]
-  (println "RECONCILE WINDOW ADD")
-  (reg.framework.electron.window-manager/open (:window-manager context) (:key (second next)) {})
-  (bind-events-on-add
-    (:events context) previous next
-    #(reg.framework.electron.window-manager/on (:window-manager context) (:key (second next)) %1 %2)))
+  (let [opts (second next)
+        {:keys [key maximized]} opts]
+  (reg.framework.electron.window-manager/open (:window-manager context) key {:frame false
+                                                                             :resizable true})
+  (when maximized
+    (reg.framework.electron.window-manager/maximize (:window-manager context) key))))
 
 
 (defmethod reg.framework.reconciler.reconcile/reconcile-remove :window [context previous next]
-  (println "RECONCILE WINDOW REMOVE")
-  (unbind-events-on-remove
-    (:events context) previous next
-    #(reg.framework.electron.window-manager/off (:window-manager context) (:key (second previous)) %1))
   (reg.framework.electron.window-manager/close (:window-manager context) (:key (second previous))))
 
 
 (defmethod reg.framework.reconciler.reconcile/reconcile-update :window [context previous next]
-  (println "RECONCILE WINDOW UPDATE"))
+  (let [prev-opts (second previous)
+        next-opts (second next)]
+
+    ;; maximize or unmaximize
+    (condp = [(:maximized prev-opts) (:maximized next-opts)]
+      [false true]
+        (reg.framework.electron.window-manager/maximize (:window-manager context) (:key next-opts))
+      [true false]
+        (reg.framework.electron.window-manager/unmaximize (:window-manager context) (:key next-opts))
+      nil)))
 
 (defmethod reg.framework.reconciler.reconcile/extended-context :window [context previous next]
   (merge context {:window-key (:key (second (or next previous)))}))

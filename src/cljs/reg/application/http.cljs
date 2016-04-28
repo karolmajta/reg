@@ -5,7 +5,9 @@
 
 (defn login [credentials]
   (let [resp-chan (promise-chan)
-        resp {:status :success :data {:token "123456"}}]
+        resp (if (= {:email "karol@demo.com" :password "password"} credentials)
+               {:status :success :data {:token "123456"}}
+               {:status :error :data {:message "Invalid credentials"}})]
     (go
       (<! (timeout 1000))
       (>! resp-chan resp)

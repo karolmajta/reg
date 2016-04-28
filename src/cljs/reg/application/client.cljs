@@ -7,5 +7,6 @@
   (reg.framework.client.core/start
     {:login-widget reg.application.widgets/login-form
      :list reg.application.widgets/list
-     :details reg.application.widgets/details}
+     :details reg.application.widgets/details
+     :app-bar reg.application.widgets/app-bar}
     (.getElementById js/document "application-container")))

@@ -12,7 +12,7 @@
                      (reset! validation-error nil)
                      ((:on-login-attempt options) @credentials)))]
     (fn [options]
-      [:div.card.g--10.m--1
+      [:div
        [:input {:type :text
                 :required true
                 :placeholder "Email address"
@@ -30,15 +30,29 @@
        [:div.color--red (:login-failed options)]])))
 
 
+(defn app-bar [options]
+  (let [{:keys [on-close on-maximize on-workspace-select]
+         :or {on-close #(do) on-maximize #(do) on-workspace-select #(do)}} options]
+    [:div
+     [:a {:href "#" :on-click #(on-close {})} "[x]"]
+     [:a {:href "#" :on-click #(on-maximize {})} "[*]"]
+     (when (:show-workspaces options)
+       [:span
+        " | "
+        [:a {:href "#" :on-click #(on-workspace-select {:workspace :projects})} "projects"]
+        " | "
+        [:a {:href "#" :on-click #(on-workspace-select {:workspace :users})} "users"]])]))
+
+
 (defn list [options]
   (let [items (:items options)
         on-select (:on-select options)]
-    (into [:div.card.g--2.m--1] (for [item items] [:div
-                                                    [:a {:href "#"
-                                                         :on-click #(on-select item)} item]]))))
+    (into [:div] (for [[item-key item] items] [:div
+                                                [:a {:href "#"
+                                                     :on-click #(on-select item-key)} item]]))))
 
 (defn details [options]
-  [:div.card.g--6.m--1
+  [:div
    (if (:item options)
      (str "You're viewing " (:item options) ".")
      "Please pick an item from the list...")])

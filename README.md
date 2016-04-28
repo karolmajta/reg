@@ -4,7 +4,9 @@ A Clojure library designed to ... well, that part is up to you.
 
 ## Usage
 
-FIXME
+    $ lein deps
+    $ lein cljsbuild once
+    $ lein npm run electron
 
 ## License
 

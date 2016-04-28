@@ -8,6 +8,7 @@
                  [org.clojure/clojurescript "1.8.40"]
                  [com.stuartsierra/component "0.3.1"]
                  [com.cognitect/transit-cljs "0.8.237"]
+                 [datascript "0.13.3"]
                  [reagent "0.5.1"]]
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-environ "1.0.2"]

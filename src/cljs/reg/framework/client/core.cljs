@@ -1,5 +1,5 @@
 (ns reg.framework.client.core
-  (:require [clojure.walk :refer [walk]]
+  (:require [clojure.walk :refer [prewalk]]
             [cljs.core.async :refer [chan put!]]
             [cljs.nodejs]
             [cognitect.transit :as transit]
@@ -10,37 +10,31 @@
 (def content (r/atom [:div.no-content]))
 (def events (chan))
 
-(defn symbol->function [component-map form]
+(defn make-listeners [options]
+  (into {} (for [k (filter #(.startsWith (name %) "on-") (keys options))]
+             [k #(do
+                  (put! events (assoc (get options k) :event-data %))
+                  (when (get-in options [k :prevent-default])
+                    (.preventDefault %))
+                  true)])))
+
+(defn data-form->function-form [component-map form]
   (cond (not (vector? form)) form
         (not (symbol? (first form))) form
         :else (let [k (keyword (name (first form)))
-                    component (get component-map k)]
+                    component (get component-map k k)
+                    options (second form)
+                    h (if (map? options) [component (merge options (make-listeners options))] [component options])
+                    t (drop 2 form)]
                 (if component
-                  (into [component] (drop 1 form))
+                  (into [] (concat h t))
                   (throw (js/Error. (str "Could not find component for symbol " (first form))))))))
 
-(defn symbols->functions [component-map form]
-  (walk (partial symbol->function component-map) identity form))
-
-(defn element-event-handlers->functions [form]
-  (cond (not (vector? form)) form
-        (not (map? (second form))) form
-        :else (let [[element options] form
-                    listeners (into {} (for [k (filter #(.startsWith (name %) "on-") (keys options))]
-                                [k #(do
-                                      (put! events (assoc (get options k) :event-data %))
-                                      (when (get-in options [k :prevent-default])
-                                        (.preventDefault %))
-                                      true)]))]
-                (into [element (merge options listeners)] (drop 2 form)))))
-
-(defn all-event-handlers->functions [form]
-  (walk element-event-handlers->functions identity form))
+(defn data-forms->function-forms [component-map form]
+  (prewalk (partial data-form->function-form component-map) form))
 
 (defn content-renderer [component-map]
-  (->> @content
-       (symbols->functions component-map)
-       (all-event-handlers->functions)))
+  (data-forms->function-forms component-map @content))
 
 (defn start [component-map mount-point]
   (r/render-component [content-renderer component-map] mount-point)
