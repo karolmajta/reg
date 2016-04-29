@@ -25,9 +25,9 @@
     ;; maximize or unmaximize
     (condp = [(:maximized prev-opts) (:maximized next-opts)]
       [false true]
-        (reg.framework.electron.window-manager/maximize (:window-manager context) (:key next-opts))
+      (reg.framework.electron.window-manager/maximize (:window-manager context) (:key next-opts))
       [true false]
-        (reg.framework.electron.window-manager/unmaximize (:window-manager context) (:key next-opts))
+      (reg.framework.electron.window-manager/unmaximize (:window-manager context) (:key next-opts))
       nil)))
 
 (defmethod reg.framework.reconciler.reconcile/extended-context :window [context previous next]

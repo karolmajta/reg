@@ -25,15 +25,15 @@
 
 (declare reconcile-children)
 (defn reconcile-element [context previous next]
-      (when (and (nil? previous) (not (nil? next)))
-            (reconcile-add context previous next)
-            (reconcile-children (extended-context context previous next) previous next))
-      (when (and (not (nil? previous)) (nil? next))
-            (reconcile-children (extended-context context previous next) previous next)
-            (reconcile-remove context previous next))
-      (when (and (not (nil? previous)) (not (nil? next)))
-            (reconcile-update context previous next)
-            (reconcile-children (extended-context context previous next) previous next)))
+  (when (and (nil? previous) (not (nil? next)))
+        (reconcile-add context previous next)
+        (reconcile-children (extended-context context previous next) previous next))
+  (when (and (not (nil? previous)) (nil? next))
+        (reconcile-children (extended-context context previous next) previous next)
+        (reconcile-remove context previous next))
+  (when (and (not (nil? previous)) (not (nil? next)))
+        (reconcile-update context previous next)
+        (reconcile-children (extended-context context previous next) previous next)))
 
 (defn reconcile-children [context previous next]
       (when (should-reconcile-children context previous next)

@@ -12,8 +12,10 @@
                  [reagent "0.5.1"]]
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-environ "1.0.2"]
-            [lein-npm "0.6.2"]]
+            [lein-npm "0.6.2"]
+            [lein-resource "15.10.2"]]
   :resource-paths ["dist/resources"]
+  :clean-targets ["target" "dist"]
 
   :profiles {:dev {:plugins [[lein-figwheel "0.5.2"]]}}
   :figwheel {}
@@ -26,7 +28,11 @@
                        [node-sass "3.6.0"]]
         :package {:main "main.js"
                   :scripts {:electron "./node_modules/.bin/electron ."
-                            :sass "./node_modules/.bin/node-sass ../vendor/surface/scss/surface_styles.scss -o resources/css"}}}
+                            :sass "./node_modules/.bin/node-sass ../vendor/photon-0.1.2-alpha/sass/photon.scss -o resources/css"}}}
+
+  :resource {:resource-paths [["src/html" {:target-path "dist/resources"}]
+                              ["src/js" {:target-path "dist"}]
+                              ["vendor/photon-0.1.2-alpha/dist/fonts" {:target-path "dist/resources/fonts"}]]}
 
   :cljsbuild {:builds {:server {:source-paths ["src/cljs"]
                                 :compiler {:main reg.application.server

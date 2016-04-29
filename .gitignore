@@ -11,8 +11,4 @@ pom.xml.asc
 .hg/
 *.log
 
-/dist/*
-!/dist/main.js
-!/dist/resources
-/dist/resources/js
-/dist/resources/css
+/dist

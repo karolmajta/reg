@@ -15,6 +15,7 @@
 (def conn (d/create-conn {}))
 
 (defn handler [e]
+
   (when (= (:event e) :app/ready)
     (let [[app] (first (d/q '[:find ?a
                               :where [?a :app/id _]] @conn))]
